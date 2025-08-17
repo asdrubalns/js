@@ -100,6 +100,10 @@
             background-color: #607D8B;
             color: white;
         }
+        .btn-success {
+            background-color: #4CAF50;
+            color: white;
+        }
         .historico-container {
             background-color: #FFF9C4;
             padding: 12px;
@@ -229,23 +233,36 @@
             padding: 6px;
             font-size: 0.8em;
         }
+        /* Novos estilos adicionados */
+        .caixa-section {
+            display: none;
+            margin-top: 10px;
+        }
+        .nova-categoria-section {
+            display: none;
+            margin-top: 10px;
+        }
+        .excluir-categoria-section {
+            display: none;
+            margin-top: 10px;
+        }
+        .bottom-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .bottom-buttons button {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Controle Financeiro</h1>
         
-        <!-- Seção Caixa -->
-        <div class="section">
-            <div class="section-title">Dinheiro em caixa:</div>
-            <div class="caixa-value" id="caixaAtual">R$ 0,00</div>
-            <input type="text" id="caixa" placeholder="Novo valor" inputmode="numeric">
-            <button class="btn btn-primary" id="atualizarCaixa">Atualizar Caixa</button>
-        </div>
-        
         <!-- Formulário -->
         <div class="section">
-            <div class="section-title">Nova Transação:</div>
+            <div class="section-title"></div>
             
             <div class="datetime-container">
                 <input type="date" id="dataDate">
@@ -321,8 +338,34 @@
                 <div class="dropdown-item">Nenhuma transação registrada</div>
             </div>
         </div>
-        <br>
-        <button class="btn btn-secondary" id="limpar">Limpar Tudo</button>
+        
+        <!-- Caixa Atual -->
+        <div class="caixa-value" id="caixaAtual" style="margin-top: 15px; text-align: center;">R$ 0,00</div>
+        
+        <!-- Seção Caixa (oculta por padrão) -->
+        <div class="caixa-section" id="caixaSection">
+            <input type="text" id="caixa" placeholder="Novo valor" inputmode="numeric">
+        </div>
+        
+        <!-- Seção Nova Categoria (oculta por padrão) -->
+        <div class="nova-categoria-section" id="novaCategoriaSection">
+            <input type="text" id="novaCategoria" placeholder="Nome da nova categoria">
+        </div>
+        
+        <!-- Seção Excluir Categoria (oculta por padrão) -->
+        <div class="excluir-categoria-section" id="excluirCategoriaSection">
+            <select id="categoriaExcluir">
+                <!-- Opções serão preenchidas dinamicamente -->
+            </select>
+        </div>
+        
+        <!-- Botões na parte inferior -->
+        <div class="bottom-buttons">
+            <button class="btn btn-primary" id="atualizarCaixa">Atualizar Caixa</button>
+            <button class="btn btn-success" id="novaCategoriaBtn">Nova Categoria</button>
+            <button class="btn btn-danger" id="excluirCategoriaBtn">Excluir Categoria</button>
+            <button class="btn btn-secondary" id="limpar">Limpar Tudo</button>
+        </div>
     </div>
 
     <script>
@@ -418,12 +461,23 @@
             let dadosSalvos = localStorage.getItem('controleFinanceiro');
             let transacoes = [];
             let caixa = 0;
+            let categorias = Object.keys(categoriasMap);
             
             if (dadosSalvos) {
                 try {
                     const dados = JSON.parse(dadosSalvos);
                     transacoes = dados.transacoes || [];
                     caixa = parseMoney(dados.caixa.toString()) || 0;
+                    
+                    // Carrega categorias personalizadas se existirem
+                    if (dados.categoriasPersonalizadas) {
+                        dados.categoriasPersonalizadas.forEach(cat => {
+                            if (!categoriasMap[cat]) {
+                                categoriasMap[cat] = cat;
+                                categorias.push(cat);
+                            }
+                        });
+                    }
                 } catch (e) {
                     console.error("Erro ao carregar dados:", e);
                     transacoes = [];
@@ -431,10 +485,82 @@
                 }
             }
             
+            // Atualiza o select de categorias
+            updateCategoriasSelect();
             updateUI();
             
             // Event Listeners
-            document.getElementById('atualizarCaixa').addEventListener('click', updateCaixa);
+            document.getElementById('atualizarCaixa').addEventListener('click', function() {
+                const caixaSection = document.getElementById('caixaSection');
+                const caixaInput = document.getElementById('caixa');
+                
+                if (caixaSection.style.display === 'block') {
+                    // Se o campo já está visível, atualiza o caixa
+                    updateCaixa();
+                    caixaSection.style.display = 'none';
+                } else {
+                    // Se o campo está oculto, mostra o campo
+                    caixaSection.style.display = 'block';
+                    caixaInput.focus();
+                }
+            });
+            
+            document.getElementById('novaCategoriaBtn').addEventListener('click', function() {
+                const novaCategoriaSection = document.getElementById('novaCategoriaSection');
+                const novaCategoriaInput = document.getElementById('novaCategoria');
+                
+                if (novaCategoriaSection.style.display === 'block') {
+                    // Se o campo já está visível, adiciona a nova categoria
+                    addNovaCategoria();
+                    novaCategoriaSection.style.display = 'none';
+                } else {
+                    // Se o campo está oculto, mostra o campo
+                    // Esconde outras seções que podem estar abertas
+                    document.getElementById('caixaSection').style.display = 'none';
+                    document.getElementById('excluirCategoriaSection').style.display = 'none';
+                    novaCategoriaSection.style.display = 'block';
+                    novaCategoriaInput.focus();
+                }
+            });
+            
+            document.getElementById('excluirCategoriaBtn').addEventListener('click', function() {
+                const excluirCategoriaSection = document.getElementById('excluirCategoriaSection');
+                
+                if (excluirCategoriaSection.style.display === 'block') {
+                    // Se o campo já está visível, executa a exclusão
+                    excluirCategoria();
+                    excluirCategoriaSection.style.display = 'none';
+                } else {
+                    // Se o campo está oculto, mostra o campo e preenche o select
+                    // Esconde outras seções que podem estar abertas
+                    document.getElementById('caixaSection').style.display = 'none';
+                    document.getElementById('novaCategoriaSection').style.display = 'none';
+                    
+                    // Preenche o select de categorias para exclusão
+                    const selectExcluir = document.getElementById('categoriaExcluir');
+                    selectExcluir.innerHTML = '';
+                    
+                    // Ordena as categorias alfabeticamente pelo nome de exibição
+                    const categoriasOrdenadas = [...categorias].sort((a, b) => {
+                        const nomeA = categoriasMap[a] || a;
+                        const nomeB = categoriasMap[b] || b;
+                        return nomeA.localeCompare(nomeB);
+                    });
+                    
+                    // Adiciona as opções ao select, exceto a categoria "outros" que não pode ser excluída
+                    categoriasOrdenadas.forEach(cat => {
+                        if (cat !== 'outros') { // Impede a exclusão da categoria "outros"
+                            const option = document.createElement('option');
+                            option.value = cat;
+                            option.textContent = categoriasMap[cat] || cat;
+                            selectExcluir.appendChild(option);
+                        }
+                    });
+                    
+                    excluirCategoriaSection.style.display = 'block';
+                }
+            });
+            
             document.getElementById('debito').addEventListener('click', () => addTransaction('debito'));
             document.getElementById('cartao').addEventListener('click', () => addTransaction('cartao'));
             document.getElementById('cheque').addEventListener('click', () => addTransaction('cheque'));
@@ -507,6 +633,106 @@
                     input.selectionStart = input.selectionEnd = 10000;
                 }, 0);
             });
+            
+            // Função para adicionar nova categoria
+            function addNovaCategoria() {
+                const nomeCategoria = document.getElementById('novaCategoria').value.trim();
+                
+                if (nomeCategoria === '') {
+                    alert('Por favor, insira um nome para a categoria.');
+                    return;
+                }
+                
+                // Cria um ID sem espaços e acentos
+                const idCategoria = nomeCategoria.toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/\s+/g, '_');
+                
+                // Verifica se a categoria já existe
+                if (categorias.includes(idCategoria)) {
+                    alert('Esta categoria já existe!');
+                    document.getElementById('novaCategoria').value = '';
+                    return;
+                }
+                
+                // Adiciona a nova categoria
+                categoriasMap[idCategoria] = nomeCategoria;
+                categorias.push(idCategoria);
+                
+                // Atualiza o select e salva os dados
+                updateCategoriasSelect();
+                saveData();
+                
+                // Limpa o campo e esconde a seção
+                document.getElementById('novaCategoria').value = '';
+                document.getElementById('valor').focus();
+            }
+            
+            // Função para excluir categoria
+            function excluirCategoria() {
+                const categoriaId = document.getElementById('categoriaExcluir').value;
+                
+                if (!categoriaId) {
+                    alert('Por favor, selecione uma categoria para excluir.');
+                    return;
+                }
+                
+                // Verifica se a categoria está em uso
+                const categoriaEmUso = transacoes.some(t => t.categoria === categoriaId);
+                
+                if (categoriaEmUso) {
+                    // Pergunta se deseja mover as transações para "outros" ou cancelar
+                    if (!confirm(`A categoria "${categoriasMap[categoriaId] || categoriaId}" está em uso. Deseja mover todas as transações desta categoria para "Outros" e excluir a categoria?`)) {
+                        return;
+                    }
+                    
+                    // Move todas as transações para a categoria "outros"
+                    transacoes.forEach(t => {
+                        if (t.categoria === categoriaId) {
+                            t.categoria = 'outros';
+                        }
+                    });
+                } else {
+                    // Confirma a exclusão da categoria não utilizada
+                    if (!confirm(`Tem certeza que deseja excluir a categoria "${categoriasMap[categoriaId] || categoriaId}"?`)) {
+                        return;
+                    }
+                }
+                
+                // Remove a categoria
+                delete categoriasMap[categoriaId];
+                categorias = categorias.filter(cat => cat !== categoriaId);
+                
+                // Atualiza a interface e salva os dados
+                updateCategoriasSelect();
+                saveData();
+                updateUI();
+                
+                // Limpa o campo e esconde a seção
+                document.getElementById('categoriaExcluir').value = '';
+                document.getElementById('valor').focus();
+            }
+            
+            // Função para atualizar o select de categorias
+            function updateCategoriasSelect() {
+                const select = document.getElementById('categoria');
+                select.innerHTML = '';
+                
+                // Ordena as categorias alfabeticamente pelo nome de exibição
+                const categoriasOrdenadas = [...categorias].sort((a, b) => {
+                    const nomeA = categoriasMap[a] || a;
+                    const nomeB = categoriasMap[b] || b;
+                    return nomeA.localeCompare(nomeB);
+                });
+                
+                // Adiciona as opções ao select
+                categoriasOrdenadas.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = categoriasMap[cat] || cat;
+                    select.appendChild(option);
+                });
+            }
             
             // Funções
             function updateCaixa() {
@@ -664,19 +890,19 @@
                 }
                 
                 // Calcular totais por categoria
-                const categorias = {};
+                const categoriasResumo = {};
                 
                 transacoes.forEach(t => {
-                    if (!categorias[t.categoria]) {
-                        categorias[t.categoria] = 0;
+                    if (!categoriasResumo[t.categoria]) {
+                        categoriasResumo[t.categoria] = 0;
                     }
-                    categorias[t.categoria] = Math.round((categorias[t.categoria] + t.valor) * 100) / 100;
+                    categoriasResumo[t.categoria] = Math.round((categoriasResumo[t.categoria] + t.valor) * 100) / 100;
                 });
                 
                 // Converter para array e ordenar por valor (maior primeiro)
-                const categoriasArray = Object.keys(categorias).map(categoria => ({
+                const categoriasArray = Object.keys(categoriasResumo).map(categoria => ({
                     nome: categoria,
-                    valor: categorias[categoria]
+                    valor: categoriasResumo[categoria]
                 })).sort((a, b) => b.valor - a.valor);
                 
                 // Adicionar itens ao dropdown
@@ -711,7 +937,8 @@
             function saveData() {
                 const dados = {
                     transacoes: transacoes,
-                    caixa: caixa
+                    caixa: caixa,
+                    categoriasPersonalizadas: categorias.filter(cat => !Object.keys(categoriasMap).includes(cat))
                 };
                 localStorage.setItem('controleFinanceiro', JSON.stringify(dados));
             }
