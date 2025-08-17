@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Controle Financeiro</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            padding: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .container {
+            background-color: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-width: 100%;
+        }
+        h1 {
+            font-size: 1.3em;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .section {
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1em;
+            color: #444;
+            position: relative;
+            padding-bottom: 5px;
+        }
+        .section-title::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #ddd;
+        }
+        .caixa-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2E7D32;
+            margin: 5px 0;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        #valor {
+            font-size: 3.1em;
+            background-color: #FFF9C4;
+            color: #000000;
+            font-weight: bold;
+            text-align: right;
+            padding-right: 15px;
+        }
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #FF9800;
+            color: white;
+            width: 100%;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-info {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-warning {
+            background-color: #9C27B0;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #607D8B;
+            color: white;
+        }
+        .historico-container {
+            background-color: #FFF9C4;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85em;
+        }
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .transaction-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .transaction-value {
+            font-weight: bold;
+        }
+        .debito { color: #f44336; }
+        .cartao { color: #2196F3; }
+        .cheque { color: #9C27B0; }
+        .delete-btn {
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 0.7em;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .resumo-container {
+            background-color: #E3F2FD;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .summary-total {
+            border-top: 1px solid #BBDEFB;
+            padding-top: 5px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .button-group button {
+            flex: 1;
+            padding: 8px;
+        }
+        .datetime-container {
+            display: flex;
+            gap: 8px;
+        }
+        .datetime-container input[type="date"] {
+            flex: 2;
+        }
+        .datetime-container input[type="time"] {
+            flex: 1;
+        }
+        .dropdown {
+            position: relative;
+            margin-top: 10px;
+        }
+        .dropdown-btn {
+            background-color: #607D8B;
+            color: white;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 4px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-content {
+            display: none;
+            background-color: #f9f9f9;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.8em;
+        }
+        .dropdown-item {
+            padding: 6px 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown.show .dropdown-content {
+            display: block;
+        }
+        .dropdown-btn::after {
+            content: "▼";
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+        .dropdown.show .dropdown-btn::after {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Controle Financeiro</h1>
+        
+        <!-- Seção Caixa -->
+        <div class="section">
+            <div class="section-title">Dinheiro em caixa:</div>
+            <div class="caixa-value" id="caixaAtual">R$ 0,00</div>
+            <input type="text" id="caixa" placeholder="Novo valor">
+            <button class="btn btn-primary" id="atualizarCaixa">Atualizar Caixa</button>
+        </div>
+        
+        <!-- Formulário -->
+        <div class="section">
+            <div class="section-title">Nova Transação:</div>
+            
+            <div class="datetime-container">
+                <input type="date" id="dataDate">
+                <input type="time" id="dataTime">
+            </div>
+            
+            <input type="text" id="valor" placeholder="R$ 0,00">
+            <select id="categoria">
+                <option value="agua">Água</option>
+                <option value="aluguel">Aluguel</option>
+                <option value="cerveja">Cerveja</option>
+                <option value="eduardo">Eduardo</option>
+                <option value="educacao">Educação</option>
+                <option value="emprestimos">Empréstimos</option>
+                <option value="energia">Energia</option>
+                <option value="gasolina">Gasolina</option>
+                <option value="impostos">Impostos</option>
+                <option value="internet">Internet</option>
+                <option value="irpf">IRPF</option>
+                <option value="josianne">Josianne</option>
+                <option value="lanches">Lanches</option>
+                <option value="lazer">Lazer</option>
+                <option value="manutencao_carro">Manutenção Carro</option>
+                <option value="manutencao_casa">Manutenção Casa</option>
+                <option value="mercado">Mercado</option>
+                <option value="saude">Saúde</option>
+                <option value="shopee">Shopee</option>
+                <option value="tigrinho">Tigrinho</option>
+                <option value="trabalho">Trabalho</option>
+                <option value="outros">Outros</option>
+            </select>
+            <input type="text" id="descricao" placeholder="Descrição">
+            
+            <div class="button-group">
+                <button class="btn btn-danger" id="debito">Débito</button>
+                <button class="btn btn-info" id="cartao">Cartão</button>
+                <button class="btn btn-warning" id="cheque">Cheque</button>
+            </div>
+        </div>
+        
+        <!-- Histórico -->
+        <div class="historico-container">
+            <div class="section-title">Histórico:</div>
+            <div id="listaTransacoes"></div>
+        </div>
+        
+        <!-- Resumo -->
+        <div class="resumo-container">
+            <div class="section-title">Resumo:</div>
+            <div class="summary-item">
+                <span>Débito:</span>
+                <span class="debito" id="totalDebitos">R$ 0,00</span>
+            </div>
+            <div class="summary-item">
+                <span>Cartão:</span>
+                <span class="cartao" id="totalCartao">R$ 0,00</span>
+            </div>
+            <div class="summary-item">
+                <span>Cheque:</span>
+                <span class="cheque" id="totalCheque">R$ 0,00</span>
+            </div>
+            <div class="summary-item summary-total">
+                <span>Total:</span>
+                <span id="totalGastos">R$ 0,00</span>
+            </div>
+        </div>
+        
+        <!-- Resumo por Categoria -->
+        <div class="dropdown" id="categoriasDropdown">
+            <button class="dropdown-btn">Resumo por Categoria</button>
+            <div class="dropdown-content" id="dropdownCategorias">
+                <div class="dropdown-item">Nenhuma transação registrada</div>
+            </div>
+        </div>
+        <br>
+        <button class="btn btn-secondary" id="limpar">Limpar Tudo</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Função para converter string monetária para número
+            const parseMoney = (value) => {
+                // Remove todos os caracteres não numéricos, exceto vírgula e ponto
+                let cleanedValue = value.replace(/[^\d,.]/g, '');
+                
+                // Substitui vírgula por ponto para padronizar o decimal
+                cleanedValue = cleanedValue.replace(',', '.');
+                
+                // Remove pontos que não sejam decimais (para formatos como 1.000,00)
+                if ((cleanedValue.match(/\./g) || []).length > 1) {
+                    cleanedValue = cleanedValue.replace(/\./g, '');
+                }
+                
+                // Converte para número com precisão de centavos
+                const numericValue = parseFloat(cleanedValue) || 0;
+                return Math.round(numericValue * 100) / 100; // Garante 2 casas decimais
+            };
+
+            // Formatação de moeda
+            const formatMoney = (value) => {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(value);
+            };
+
+            // Formatação de data
+            const formatDate = (dateString) => {
+                const date = new Date(dateString);
+                return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth()+1).toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+            };
+
+            // Configura data e hora atuais
+            function setCurrentDateTime() {
+                const now = new Date();
+                
+                // Formata data para o input date (YYYY-MM-DD)
+                const dateStr = now.toISOString().split('T')[0];
+                
+                // Formata hora para o input time (HH:MM)
+                const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                                 now.getMinutes().toString().padStart(2, '0');
+                
+                document.getElementById('dataDate').value = dateStr;
+                document.getElementById('dataTime').value = timeStr;
+            }
+
+            // Combina data e hora dos inputs separados
+            function getDateTime() {
+                const date = document.getElementById('dataDate').value;
+                const time = document.getElementById('dataTime').value;
+                return new Date(`${date}T${time}:00`);
+            }
+
+            // Mapeamento de categorias para exibição
+            const categoriasMap = {
+                agua: 'Água',
+                aluguel: 'Aluguel',
+                cerveja: 'Cerveja',
+                eduardo: 'Eduardo',
+                educacao: 'Educação',
+                emprestimos: 'Empréstimos',
+                energia: 'Energia',
+                gasolina: 'Gasolina',
+                impostos: 'Impostos',
+                internet: 'Internet',
+                irpf: 'IRPF',
+                josianne: 'Josianne',
+                lanches: 'Lanches',
+                lazer: 'Lazer',
+                manutencao_carro: 'Manutenção Carro',
+                manutencao_casa: 'Manutenção Casa',
+                mercado: 'Mercado',
+                saude: 'Saúde',
+                shopee: 'Shopee',
+                tigrinho: 'Tigrinho',
+                trabalho: 'Trabalho',
+                outros: 'Outros'
+            };
+
+            // Inicialização
+            setCurrentDateTime();
+            document.getElementById('valor').focus();
+            
+            // Carregar dados
+            let dadosSalvos = localStorage.getItem('controleFinanceiro');
+            let transacoes = [];
+            let caixa = 0;
+            
+            if (dadosSalvos) {
+                try {
+                    const dados = JSON.parse(dadosSalvos);
+                    transacoes = dados.transacoes || [];
+                    caixa = parseMoney(dados.caixa.toString()) || 0;
+                } catch (e) {
+                    console.error("Erro ao carregar dados:", e);
+                    transacoes = [];
+                    caixa = 0;
+                }
+            }
+            
+            updateUI();
+            
+            // Event Listeners
+            document.getElementById('atualizarCaixa').addEventListener('click', updateCaixa);
+            document.getElementById('debito').addEventListener('click', () => addTransaction('debito'));
+            document.getElementById('cartao').addEventListener('click', () => addTransaction('cartao'));
+            document.getElementById('cheque').addEventListener('click', () => addTransaction('cheque'));
+            document.getElementById('limpar').addEventListener('click', clearAll);
+            
+            // Dropdown de categorias
+            document.querySelector('.dropdown-btn').addEventListener('click', function() {
+                document.getElementById('categoriasDropdown').classList.toggle('show');
+            });
+            
+            // Fechar dropdown quando clicar fora
+            window.addEventListener('click', function(e) {
+                if (!e.target.matches('.dropdown-btn')) {
+                    const dropdowns = document.querySelectorAll('.dropdown');
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('show');
+                    });
+                }
+            });
+            
+            // Formatação do campo valor em tempo real
+            document.getElementById('valor').addEventListener('input', function(e) {
+                let value = this.value.replace(/[^\d]/g, '');
+                
+                if (value === '') {
+                    this.value = '';
+                    return;
+                }
+                
+                // Converte para número e divide por 100 para obter os centavos
+                const numericValue = parseFloat(value) / 100;
+                
+                // Formata como moeda brasileira
+                this.value = numericValue.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL',
+                    minimumFractionDigits: 2
+                }).replace('R$', '').trim();
+                
+                // Move o cursor para o final
+                const input = this;
+                setTimeout(function() {
+                    input.selectionStart = input.selectionEnd = 10000;
+                }, 0);
+            });
+            
+            // Formatação do campo caixa em tempo real
+            document.getElementById('caixa').addEventListener('input', function(e) {
+                let value = this.value.replace(/[^\d,]/g, '');
+                
+                if (value === '') {
+                    this.value = '';
+                    return;
+                }
+                
+                // Se houver vírgula, considera como separador decimal
+                if (value.includes(',')) {
+                    const parts = value.split(',');
+                    if (parts.length > 2) {
+                        // Mais de uma vírgula - mantém apenas a primeira como decimal
+                        value = parts[0] + ',' + parts.slice(1).join('');
+                    }
+                    
+                    // Limita a 2 casas decimais após a vírgula
+                    if (parts[1] && parts[1].length > 2) {
+                        value = parts[0] + ',' + parts[1].substring(0, 2);
+                    }
+                }
+                
+                this.value = value;
+                
+                // Move o cursor para o final
+                const input = this;
+                setTimeout(function() {
+                    input.selectionStart = input.selectionEnd = 10000;
+                }, 0);
+            });
+            
+            // Funções
+            function updateCaixa() {
+                let valorInput = document.getElementById('caixa').value;
+                const novoCaixa = parseMoney(valorInput);
+                
+                if (!isNaN(novoCaixa)) {
+                    caixa = novoCaixa;
+                    saveData();
+                    updateUI();
+                    document.getElementById('caixa').value = '';
+                    document.getElementById('valor').focus();
+                } else {
+                    alert('Por favor, insira um valor válido para o caixa.');
+                }
+            }
+            
+            function addTransaction(type) {
+                let valorInput = document.getElementById('valor').value;
+                const valor = parseMoney(valorInput);
+                
+                if (isNaN(valor)) {
+                    alert('Por favor, insira um valor válido.');
+                    document.getElementById('valor').focus();
+                    return;
+                }
+                
+                if (valor <= 0) {
+                    alert('O valor deve ser maior que zero.');
+                    document.getElementById('valor').focus();
+                    return;
+                }
+                
+                // Verifica se é débito e se há saldo suficiente
+                if (type === 'debito') {
+                    if (valor > caixa) {
+                        if (!confirm(`Saldo insuficiente (${formatMoney(caixa)}). Registrar como cheque?`)) {
+                            return;
+                        }
+                        type = 'cheque';
+                    } else {
+                        // Subtrai do caixa apenas se for débito
+                        caixa = Math.round((caixa - valor) * 100) / 100;
+                    }
+                }
+                
+                const transacao = {
+                    id: Date.now(),
+                    data: getDateTime().toISOString(),
+                    valor: valor,
+                    tipo: type,
+                    categoria: document.getElementById('categoria').value,
+                    descricao: document.getElementById('descricao').value
+                };
+                
+                transacoes.push(transacao);
+                saveData();
+                clearForm();
+                updateUI();
+            }
+            
+            function updateUI() {
+                // Atualizar caixa
+                document.getElementById('caixaAtual').textContent = formatMoney(caixa);
+                
+                // Atualizar transações
+                const lista = document.getElementById('listaTransacoes');
+                lista.innerHTML = '';
+                
+                if (transacoes.length === 0) {
+                    lista.innerHTML = '<div style="color:#666; text-align:center;">Nenhuma transação</div>';
+                } else {
+                    // Ordenar por data (mais recente primeiro)
+                    transacoes.sort((a,b) => new Date(b.data) - new Date(a.data));
+                    
+                    transacoes.forEach(t => {
+                        const item = document.createElement('div');
+                        item.className = 'transaction-item';
+                        item.innerHTML = `
+                            <div class="transaction-info">
+                                <span class="transaction-date">${formatDate(t.data)}</span>
+                                <span>${categoriasMap[t.categoria] || t.categoria}${t.descricao ? ' - ' + t.descricao : ''}</span>
+                            </div>
+                            <div>
+                                <span class="transaction-value ${t.tipo}">${formatMoney(t.valor)}</span>
+                                <button class="delete-btn" data-id="${t.id}">x</button>
+                            </div>
+                        `;
+                        lista.appendChild(item);
+                    });
+                    
+                    // Adicionar eventos de deletar
+                    document.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const id = parseInt(this.getAttribute('data-id'));
+                            const transacao = transacoes.find(t => t.id === id);
+                            
+                            if (confirm(`Deseja realmente excluir esta transação de ${formatMoney(transacao.valor)}?`)) {
+                                if (transacao.tipo === 'debito') {
+                                    caixa = Math.round((caixa + transacao.valor) * 100) / 100;
+                                }
+                                transacoes = transacoes.filter(t => t.id !== id);
+                                saveData();
+                                updateUI();
+                            }
+                        });
+                    });
+                }
+                
+                // Atualizar resumo
+                const totais = {
+                    debito: 0,
+                    cartao: 0,
+                    cheque: 0
+                };
+                
+                transacoes.forEach(t => {
+                    totais[t.tipo] = Math.round((totais[t.tipo] + t.valor) * 100) / 100;
+                });
+                
+                document.getElementById('totalDebitos').textContent = formatMoney(totais.debito);
+                document.getElementById('totalCartao').textContent = formatMoney(totais.cartao);
+                document.getElementById('totalCheque').textContent = formatMoney(totais.cheque);
+                document.getElementById('totalGastos').textContent = formatMoney(Math.round((totais.debito + totais.cartao + totais.cheque) * 100) / 100);
+                
+                // Atualizar resumo por categoria
+                updateResumoCategorias();
+            }
+            
+            function updateResumoCategorias() {
+                const dropdownContent = document.getElementById('dropdownCategorias');
+                dropdownContent.innerHTML = '';
+                
+                if (transacoes.length === 0) {
+                    dropdownContent.innerHTML = '<div class="dropdown-item">Nenhuma transação registrada</div>';
+                    return;
+                }
+                
+                // Calcular totais por categoria
+                const categorias = {};
+                
+                transacoes.forEach(t => {
+                    if (!categorias[t.categoria]) {
+                        categorias[t.categoria] = 0;
+                    }
+                    categorias[t.categoria] = Math.round((categorias[t.categoria] + t.valor) * 100) / 100;
+                });
+                
+                // Converter para array e ordenar por valor (maior primeiro)
+                const categoriasArray = Object.keys(categorias).map(categoria => ({
+                    nome: categoria,
+                    valor: categorias[categoria]
+                })).sort((a, b) => b.valor - a.valor);
+                
+                // Adicionar itens ao dropdown
+                categoriasArray.forEach(categoria => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    item.innerHTML = `
+                        <span>${categoriasMap[categoria.nome] || categoria.nome}</span>
+                        <span>${formatMoney(categoria.valor)}</span>
+                    `;
+                    dropdownContent.appendChild(item);
+                });
+            }
+            
+            function clearForm() {
+                document.getElementById('valor').value = '';
+                document.getElementById('descricao').value = '';
+                setCurrentDateTime();
+                document.getElementById('valor').focus();
+            }
+            
+            function clearAll() {
+                if (confirm('Tem certeza que deseja limpar TODAS as transações e zerar o caixa?\nEsta ação não pode ser desfeita.')) {
+                    transacoes = [];
+                    caixa = 0;
+                    saveData();
+                    updateUI();
+                    document.getElementById('valor').focus();
+                }
+            }
+            
+            function saveData() {
+                const dados = {
+                    transacoes: transacoes,
+                    caixa: caixa
+                };
+                localStorage.setItem('controleFinanceiro', JSON.stringify(dados));
+            }
+        });
+    </script>
+</body>
+</html>
