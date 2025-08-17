@@ -231,7 +231,7 @@
         <div class="section">
             <div class="section-title">Dinheiro em caixa:</div>
             <div class="caixa-value" id="caixaAtual">R$ 0,00</div>
-            <input type="text" id="caixa" placeholder="Novo valor">
+            <input type="text" id="caixa" placeholder="Novo valor" inputmode="numeric">
             <button class="btn btn-primary" id="atualizarCaixa">Atualizar Caixa</button>
         </div>
         
@@ -244,7 +244,7 @@
                 <input type="time" id="dataTime">
             </div>
             
-            <input type="text" id="valor" placeholder="R$ 0,00">
+            <input type="text" id="valor" placeholder="R$ 0,00" inputmode="numeric">
             <select id="categoria">
                 <option value="agua">Água</option>
                 <option value="aluguel">Aluguel</option>
@@ -443,10 +443,12 @@
                 }
             });
             
-            // Formatação do campo valor em tempo real
+            // Formatação do campo valor em tempo real (aceita apenas números)
             document.getElementById('valor').addEventListener('input', function(e) {
-                let value = this.value.replace(/[^\d]/g, '');
+                // Remove tudo que não é dígito
+                let value = this.value.replace(/\D/g, '');
                 
+                // Se estiver vazio, define como zero
                 if (value === '') {
                     this.value = '';
                     return;
@@ -455,12 +457,11 @@
                 // Converte para número e divide por 100 para obter os centavos
                 const numericValue = parseFloat(value) / 100;
                 
-                // Formata como moeda brasileira
+                // Formata como moeda brasileira (sem o símbolo R$)
                 this.value = numericValue.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    minimumFractionDigits: 2
-                }).replace('R$', '').trim();
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
                 
                 // Move o cursor para o final
                 const input = this;
@@ -471,28 +472,21 @@
             
             // Formatação do campo caixa em tempo real
             document.getElementById('caixa').addEventListener('input', function(e) {
-                let value = this.value.replace(/[^\d,]/g, '');
+                let value = this.value.replace(/[^\d]/g, '');
                 
                 if (value === '') {
                     this.value = '';
                     return;
                 }
                 
-                // Se houver vírgula, considera como separador decimal
-                if (value.includes(',')) {
-                    const parts = value.split(',');
-                    if (parts.length > 2) {
-                        // Mais de uma vírgula - mantém apenas a primeira como decimal
-                        value = parts[0] + ',' + parts.slice(1).join('');
-                    }
-                    
-                    // Limita a 2 casas decimais após a vírgula
-                    if (parts[1] && parts[1].length > 2) {
-                        value = parts[0] + ',' + parts[1].substring(0, 2);
-                    }
-                }
+                // Converte para número e divide por 100 para obter os centavos
+                const numericValue = parseFloat(value) / 100;
                 
-                this.value = value;
+                // Formata como moeda brasileira (sem o símbolo R$)
+                this.value = numericValue.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
                 
                 // Move o cursor para o final
                 const input = this;
