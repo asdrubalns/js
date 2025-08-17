@@ -221,6 +221,14 @@
         .dropdown.show .dropdown-btn::after {
             transform: rotate(180deg);
         }
+        .show-all-btn {
+            background-color: #4CAF50;
+            color: white;
+            width: 100%;
+            margin-top: 8px;
+            padding: 6px;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -282,6 +290,7 @@
         <div class="historico-container">
             <div class="section-title">Histórico:</div>
             <div id="listaTransacoes"></div>
+            <button class="show-all-btn" id="historicoCompleto" style="display: none;">Histórico Completo</button>
         </div>
         
         <!-- Resumo -->
@@ -318,6 +327,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Variável para controlar se estamos mostrando o histórico completo ou não
+            let mostrarHistoricoCompleto = false;
+            
             // Função para converter string monetária para número
             const parseMoney = (value) => {
                 // Remove todos os caracteres não numéricos, exceto vírgula e ponto
@@ -427,6 +439,7 @@
             document.getElementById('cartao').addEventListener('click', () => addTransaction('cartao'));
             document.getElementById('cheque').addEventListener('click', () => addTransaction('cheque'));
             document.getElementById('limpar').addEventListener('click', clearAll);
+            document.getElementById('historicoCompleto').addEventListener('click', toggleHistoricoCompleto);
             
             // Dropdown de categorias
             document.querySelector('.dropdown-btn').addEventListener('click', function() {
@@ -555,6 +568,11 @@
                 updateUI();
             }
             
+            function toggleHistoricoCompleto() {
+                mostrarHistoricoCompleto = !mostrarHistoricoCompleto;
+                updateUI();
+            }
+            
             function updateUI() {
                 // Atualizar caixa
                 document.getElementById('caixaAtual').textContent = formatMoney(caixa);
@@ -565,11 +583,15 @@
                 
                 if (transacoes.length === 0) {
                     lista.innerHTML = '<div style="color:#666; text-align:center;">Nenhuma transação</div>';
+                    document.getElementById('historicoCompleto').style.display = 'none';
                 } else {
                     // Ordenar por data (mais recente primeiro)
                     transacoes.sort((a,b) => new Date(b.data) - new Date(a.data));
                     
-                    transacoes.forEach(t => {
+                    // Determinar quantas transações mostrar
+                    const transacoesParaMostrar = mostrarHistoricoCompleto ? transacoes : transacoes.slice(0, 5);
+                    
+                    transacoesParaMostrar.forEach(t => {
                         const item = document.createElement('div');
                         item.className = 'transaction-item';
                         item.innerHTML = `
@@ -584,6 +606,15 @@
                         `;
                         lista.appendChild(item);
                     });
+                    
+                    // Mostrar ou esconder o botão de histórico completo
+                    if (transacoes.length > 5) {
+                        document.getElementById('historicoCompleto').style.display = 'block';
+                        document.getElementById('historicoCompleto').textContent = 
+                            mostrarHistoricoCompleto ? 'Mostrar Apenas os 5 Mais Recentes' : 'Histórico Completo';
+                    } else {
+                        document.getElementById('historicoCompleto').style.display = 'none';
+                    }
                     
                     // Adicionar eventos de deletar
                     document.querySelectorAll('.delete-btn').forEach(btn => {
